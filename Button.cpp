@@ -9,10 +9,11 @@ void Button::setup(int _buttonID, int _buttonPin, int _ledPin, GeneralBoolFuncti
   buttonPin = _buttonPin;
   callback = _callback;
   pinMode(buttonPin, INPUT);
-  pinMode(ledPin, OUTPUT);
-
-  // set initial LED state
-  digitalWrite(ledPin, ledState);
+  if (ledPin > -1) {
+    pinMode(ledPin, OUTPUT);
+    // set initial LED state
+    digitalWrite(ledPin, ledState);
+  }
 }
 
 void Button::update() {
@@ -47,9 +48,11 @@ void Button::update() {
     }
   }
 
-  // set the LED:
-  digitalWrite(ledPin, ledState);
-
+  if (ledPin > -1) {
+    // set the LED:
+    digitalWrite(ledPin, ledState);
+  }
+  
   // save the reading.  Next time through the loop,
   // it'll be the lastButtonState:
   lastButtonState = reading;

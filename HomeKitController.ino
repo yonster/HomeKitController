@@ -8,19 +8,16 @@ Adafruit_MQTT_Subscribe statusFeed = Adafruit_MQTT_Subscribe(&mqtt, "steyaertHom
 Adafruit_MQTT_Publish controlFeed = Adafruit_MQTT_Publish(&mqtt, "steyaertHome/masterBedroom/lightsControl");
 
 
-// Change these two numbers to the pins connected to your encoder.
-//   Best Performance: both pins have interrupt capability
-//   Good Performance: only the first pin has interrupt capability
-//   Low Performance:  neither pin has interrupt capability
-//Encoder myEnc(12, 6);
-//long oldEncoderPosition  = -999;
+// pins connected to your encoder (on Huzzah use any but 16 which is non-interrupt, 0 & 2 which have LEDs)
+Encoder myEnc(13, 12);
+long oldEncoderPosition  = -999;
 
 
 // pinouts availbale 0 2 4 5 12 13 14 15 16
 // int timerTicks = 0;               // count ticks for interrupt timer
 
 // create objects
-#define BUTTON_COUNT 2
+#define BUTTON_COUNT 3
 Button button[BUTTON_COUNT];
 Utilities utilities;
 
@@ -37,28 +34,36 @@ void setup() {
   // set up pushbuttons
   button[0].setup(0, 4, 2, buttonPress);
   button[1].setup(1, 5, 0, buttonPress);
-
-//  rotaryEncoder.setup();
+  button[2].setup(2, 14, -1, buttonPress);
 }
 
 
 void buttonPress(int id, bool value) {
+  // light status format: ID:{ON/OFF}:HUE:SAT:VAL
   if (value) {
     if (id == 0) {
-//      MQTT_publish ("01:ON\n01:VAL:50\n01:HUE:50\n01:SAT:23");
       MQTT_publish ("01:ON");
-      MQTT_publish ("01:VAL:50");
-      MQTT_publish ("01:HUE:50");
-      MQTT_publish ("01:SAT:23");
-    } else {
-      MQTT_publish ("03:ON\n03:VAL:50\n03:HUE:50\n03:SAT:23");
+      MQTT_publish ("03:ON");
+//      MQTT_publish ("01:ON:050:023:050");
+//      MQTT_publish ("03:ON:050:023:050");
+    } else if (id == 1) {
+      MQTT_publish ("02:ON");
+      MQTT_publish ("02:HUE:002");
+      MQTT_publish ("02:SAT:100");
+      MQTT_publish ("02:VAL:50");
+//      MQTT_publish ("02:ON:002:255:255");
+    } else if (id == 2) {
+      Serial.println("encoder push 1");
     }
     Serial.println("on");
   } else {
     if (id == 0) {
       MQTT_publish ("01:OFF");
-    } else {
       MQTT_publish ("03:OFF");
+    } else if (id == 1) {
+      MQTT_publish ("02:OFF");
+    } else if (id == 2) {
+      Serial.println("encoder push 2");
     }
     Serial.println("off");
   }
@@ -80,11 +85,17 @@ void loop() {
     button[buttonID].update();
   }
 
-//  long newPosition = myEnc.read();
-//  if (newPosition != oldEncoderPosition) {
-//    oldEncoderPosition = newPosition;
-//    Serial.println(newPosition);
-//  }
+  long newPosition = myEnc.read();
+  if (newPosition != oldEncoderPosition) {
+    oldEncoderPosition = newPosition;
+    String message = "02:VAL:";
+    int newValue = 64 + (newPosition/3);
+    if (newValue > 100) newValue = 100;
+    if (newValue < 0) newValue = 0;
+    message += newValue;
+    MQTT_publish (message);
+    Serial.println(newPosition);
+  }
 }
 
 
