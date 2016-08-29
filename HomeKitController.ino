@@ -87,20 +87,25 @@ void loop() {
 
   long newPosition = myEnc.read();
   if (newPosition != oldEncoderPosition) {
+    if (oldEncoderPosition < newPosition) {
+      MQTT_publish ("02:BRIGHT");
+    } else {
+      MQTT_publish ("02:DIM");
+    }
     oldEncoderPosition = newPosition;
-    String message = "02:VAL:";
-    int newValue = 64 + (newPosition/3);
-    if (newValue > 100) newValue = 100;
-    if (newValue < 0) newValue = 0;
-    message += newValue;
-    MQTT_publish (message);
-    Serial.println(newPosition);
+//    String message = "02:VAL:";
+//    int newValue = 64 + (newPosition/3);
+//    if (newValue > 100) newValue = 100;
+//    if (newValue < 0) newValue = 0;
+//    message += newValue;
+//    MQTT_publish (message);
+//    Serial.println(newPosition);
   }
 }
 
 
 void statusCallback(char *data, uint16_t len) {
-  Serial.print("Received: ");
+  Serial.print("Received: "); 
   Serial.println(data);
 }
 

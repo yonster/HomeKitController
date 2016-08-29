@@ -12,7 +12,6 @@
 #define WLAN_SSID       "ATTuNvpygs"
 #define WLAN_PASS       "f4hee83p6qir"
 #include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
 
 /************************* MQTT Setup *********************************/
 
