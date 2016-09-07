@@ -7,6 +7,17 @@
 #include "Arduino.h"
 #include "Object.h"
 
+// Time
+#include <SPI.h>
+#include <Wire.h>
+#include <TimeLib.h> 
+#include <WiFiUdp.h>
+
+// Display
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+
 /************************* WiFi Access Point *********************************/
 
 #define WLAN_SSID       "ATTuNvpygs"
@@ -31,6 +42,10 @@ class Utilities {
   public:
     Utilities();
     void setup();
+    void loop();
+    void digitalClockDisplay();
+    void printDigits(int digits);
+
 //    void MQTT_connect();
 //    void MQTT_publish(String message);
 //    void update();
