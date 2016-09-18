@@ -12,7 +12,6 @@ Adafruit_MQTT_Publish controlFeed = Adafruit_MQTT_Publish(&mqtt, "steyaertHome/m
 Encoder myEnc(13, 12);
 long oldEncoderPosition  = -999;
 
-
 // pinouts availbale 0 2 4 5 12 13 14 15 16
 int timerTicks = 0;               // count ticks for interrupt timer
 
@@ -20,7 +19,6 @@ int timerTicks = 0;               // count ticks for interrupt timer
 #define BUTTON_COUNT 3
 Button button[BUTTON_COUNT];
 Utilities utilities;
-
 
 // Time
 // NTP Servers:
@@ -48,8 +46,8 @@ void setup() {
   MQTT_connect();
 
   // set up pushbuttons
-  button[0].setup(0, 4, 2, buttonPress);
-  button[1].setup(1, 5, 0, buttonPress);
+  button[0].setup(0, 16, 2, buttonPress);
+  button[1].setup(1, 15, 0, buttonPress);
   button[2].setup(2, 14, -1, buttonPress);
 
 
@@ -73,9 +71,9 @@ void buttonPress(int id, bool value) {
       MQTT_publish ("02:VAL:50");
       MQTT_publish ("02:ON");
     } else if (id == 2) {
-      Serial.println("encoder push 1");
+      utilities.modeVisible = true;
+//      utilities.updateMode(1);  // *** for testing
     }
-    Serial.println("on");
   } else {
     if (id == 0) {
       MQTT_publish ("01:OFF");
@@ -83,22 +81,21 @@ void buttonPress(int id, bool value) {
     } else if (id == 1) {
       MQTT_publish ("02:OFF");
     } else if (id == 2) {
-      Serial.println("encoder push 2");
+      utilities.modeVisible = false;
+      // selected a new mode, potentially, send out update
+      MQTT_publish (utilities.modeArray[utilities.currentModeID]);
     }
-    Serial.println("off");
   }
+  utilities.updateDisplay();
 }
 
 
-void loop() {
+void loop() {    
   // Ensure the connection to the MQTT server stays alive
   MQTT_connect();
 
   // check MQTT feed for updates
   mqtt.processPackets(20);
-
-//  utilities.update();
-  // updateInterrupts();     // allow interrupt timer to run
 
   // update pushbuttons
   for (int buttonID = 0; buttonID < BUTTON_COUNT; buttonID++) {
@@ -107,19 +104,20 @@ void loop() {
 
   long newPosition = myEnc.read();
   if (newPosition != oldEncoderPosition) {
-    if (oldEncoderPosition < newPosition) {
-      MQTT_publish ("02:BRIGHT");
+    if (utilities.modeVisible) {
+      // change mode
+      utilities.updateMode(oldEncoderPosition - newPosition);
     } else {
-      MQTT_publish ("02:DIM");
+      // change brightness
+//      for (int buttonID = 0; buttonID < BUTTON_COUNT; buttonID++) {
+        if (oldEncoderPosition < newPosition) {
+          MQTT_publish ("02:BRIGHT");
+        } else {
+          MQTT_publish ("02:DIM");
+        }
+//      }
     }
     oldEncoderPosition = newPosition;
-//    String message = "02:VAL:";
-//    int newValue = 64 + (newPosition/3);
-//    if (newValue > 100) newValue = 100;
-//    if (newValue < 0) newValue = 0;
-//    message += newValue;
-//    MQTT_publish (message);
-//    Serial.println(newPosition);
   }
   
   updateInterrupts();     // allow interrupt timer to run
@@ -128,11 +126,8 @@ void loop() {
 void updateInterrupts() {
   if (timerTicks % 2000 == 0) {
     utilities.loop(); // clock update
-  } else if (timerTicks % 200 == 0) {
-    // special case for double-button push
-    if (digitalRead(4) == LOW && digitalRead(5) == LOW) {
-      Serial.println("pushing both buttons");
-    }
+  } else if (timerTicks % 100 == 0) {
+    // not used for now
   }
 
   if (timerTicks++ > 2147483647) {

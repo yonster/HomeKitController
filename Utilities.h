@@ -16,7 +16,12 @@
 // Display
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include <U8x8lib.h>
+/* Constructor */
+//U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 13, /* data=*/ 11);
 
+#define MODEARRAYSIZE 5
+#define MODEARAY      "NORMAL", "DARK", "RAINBOW", "WAKE", "CLOCK", "SUNRISE"
 
 /************************* WiFi Access Point *********************************/
 
@@ -37,19 +42,23 @@
   #include <avr/power.h>
 #endif
 
+#define ENCODER_DAMPENING 3
 
 class Utilities {
   public:
     Utilities();
     void setup();
     void loop();
+    void displayString(String theString, int x, int y, int fontSize);
+    void updateDisplay();
+    void updateMode(int increment);
     void digitalClockDisplay();
-    void printDigits(int digits);
-
-//    void MQTT_connect();
-//    void MQTT_publish(String message);
-//    void update();
-//    void addMQTTObject(Object object);
+    String addZero(int digits);
+    String addDot(int digits);
+    bool modeVisible = false;
+    String modeArray[MODEARRAYSIZE] = {MODEARAY};
+    int currentModeID = 0;
+    int encoderAccumulator = 0;
   private:
 };
 

@@ -17,7 +17,7 @@ class Button {
     int buttonID = 0;     // id number
     int buttonPin = 0;    // the number of the pushbutton pin
     int ledPin = 0;       // the number of the LED pin, -1 for none
-    int ledState = HIGH;          // the current state of the output pin
+    int ledState = LOW;          // the current state of the output pin
     
     // Variables will change:
     int buttonState = HIGH;       // the current reading from the input pin
